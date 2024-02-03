@@ -1,0 +1,149 @@
+#include <SoftwareSerial.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+byte sensorInterrupt = 0;  // 0 = digital pin 2
+byte sensorPin       = 5;
+  float previousWaterUsages, previousWaterPesoRates, CustomcubicRate;
+float calibrationFactor = 3;
+volatile byte pulseCount;  
+float flowRate;
+unsigned int flowMilliLitres;
+unsigned long totalMilliLitres;
+unsigned long cubicJec;
+unsigned long cubicToPeso;
+unsigned long oldTime;
+
+ String receivedData = "";
+ const int receivePin = 3;
+ int cubicFinal;
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+void setup()
+{
+  Serial.begin(9600);
+Serial1.begin(9600);
+  Wire.begin(8);
+  Wire.onReceive(receiveData);
+  lcd.backlight();
+  pinMode(sensorPin, INPUT);
+  digitalWrite(sensorPin, HIGH);
+
+  pulseCount        = 0;
+  flowRate          = 0.0;
+  flowMilliLitres   = 0;
+  totalMilliLitres  = 0;
+  cubicJec          = 0;
+  cubicToPeso       = 0;
+  cubicToPeso       = 0;
+  oldTime           = 0;
+
+  attachInterrupt(sensorInterrupt, pulseCounter, FALLING);
+          lcd.begin (20,4);
+}
+
+void receiveData (int byteCount){
+
+  while (Wire.available()) {
+    char c = Wire.read(); 
+    receivedData += c; 
+  }
+  int commaIndex = receivedData.indexOf(','); 
+
+    String float1String = receivedData.substring(0, commaIndex); 
+    receivedData =receivedData.substring(commaIndex +1);
+    commaIndex = receivedData.indexOf(',');
+    String float2String = receivedData.substring(0, commaIndex); 
+     receivedData =receivedData.substring(commaIndex +1);
+     String float3String = receivedData;
+
+    previousWaterUsages = float1String.toFloat(); 
+    previousWaterPesoRates = float2String.toFloat();
+ CustomcubicRate = float3String.toFloat();
+}
+
+ float pesos;
+  float cubbic;
+int cubicFinal2 = "";
+   int exponent =3;
+void loop(){
+if (Serial1.available()){
+  String receivedData2 = Serial1.readStringUntil('\n');
+   receivedData2.replace("\"", "");
+              receivedData2.replace("\\", "");
+  cubicFinal = receivedData2.toInt();
+}
+
+   
+   if((millis() - oldTime) > 1000)    
+  { 
+
+    detachInterrupt(sensorInterrupt);
+    flowRate = ((1000.0 / (millis() - oldTime)) * pulseCount) * calibrationFactor;
+
+    oldTime = millis();
+    
+    totalMilliLitres += flowRate;
+
+    cubicJec = (totalMilliLitres);
+// Milliliters and database milliliters combined = usagePlusPrev
+     float usagePlusPrev = ( previousWaterUsages + totalMilliLitres);
+// Milliliters divided by 1,000 to get the LITERS
+     float liters = (usagePlusPrev / 1000.0);
+// Liters divided by 1,000 to get m^3 rate
+     float cubic = (liters / 1000.0);
+// Cubic m^3 multiplied to cubic Rate from the app to get the pesos.
+    pesos =  ( cubic *cubicFinal) ;
+   float pesosPlusPrev = (previousWaterPesoRates + pesos);
+
+     //  customRatecubicJec = (CustomcubicRate);
+     // cubicToPeso = (cubicJec* 12.25); // 0.19 yung example ng cubic to peso conversion
+
+    
+    // Print the flow rate for this second in litres / minute
+   
+
+
+       lcd.setCursor(0, 0);
+   
+    lcd.print("Flow rate:");
+
+    lcd.print(flowRate);  // Print the integer part of the variable
+    lcd.print("mL/min");
+
+    lcd.setCursor(0, 1);
+    lcd.print("Water Usages: ");        
+
+	lcd.print(usagePlusPrev  );
+	lcd.print("mL");
+
+    lcd.setCursor(0, 2);
+lcd.print("cu Rate: ");   
+ lcd.print(cubicFinal);
+ lcd.print(" /cu");
+//Peso
+   lcd.setCursor(0, 3);
+ lcd.print("Rate: ");        
+ 	lcd.print(pesosPlusPrev, 4 );
+    lcd.print(" pesos");
+ //   Serial1.print("Rate: "a);
+  Serial.print(",");
+    Serial.print(pesos );
+
+    // Reset the pulse counter so we can start incrementing again
+    pulseCount = 0;
+    
+    // Enable the interrupt again now that we've finished sending output
+    attachInterrupt(sensorInterrupt, pulseCounter, FALLING);
+    
+    
+    }
+  }
+
+
+/*
+Insterrupt Service Routine
+ */
+void pulseCounter()
+{
+  // Increment the pulse counter
+  pulseCount++;
+}

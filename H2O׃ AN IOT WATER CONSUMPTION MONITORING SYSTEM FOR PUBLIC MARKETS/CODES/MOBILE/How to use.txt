@@ -1,0 +1,36 @@
+About the app:
+This application requires a Wi-Fi connection for functionality and does not require any special permissions during installation. Simply install it in the usual manner and open the app to access the H2O system.
+To install: 
+1. Copy the H2O Monitoring App.apk on your android phone.
+2. Install it.
+3. Open the app (Make sure that you have internet access).
+
+To access: 
+On management log in tab enter:
+Username: admin
+Password: admin
+
+Then navigate to 'Registration form' tab to access the Vendor's dashboard.
+
+****************************************************************************
+****************************************************************************
+
+For the file H2O Montiring App.aia:
+*The System uses Codeblocks for app develeopment. See the "CODEBLOCKS" Folder for the blocks.
+To utilize the codes:
+1. Go to https://appinventor.mit.edu/
+2. Click "Create Apps!"
+3. Navigate on to the upper tools and select Projects>Import project (.aia) from my computer ...
+4. Hit "Choose File"
+5. Locate the H2O Monitoring App.aia, then click "OK"
+6. Look into the Projects and double click on the H2O Monitoring app section.
+7. Done.
+
+Note: Change the Firebase database links inside the blocks and the editor to connect the application into Firebase database.
+To do this:
+• Go to your Node MCU v3 code then select and copy the firebase link and secrets then paste it on the notepad.
+• Go to MIT inventor, then locate all 'FirebaseDB' and change all its information.
+• Now go to the Blocks section, then change also the links on the codes.
+• Finally, build the app again and install it into your android devices.
+
+

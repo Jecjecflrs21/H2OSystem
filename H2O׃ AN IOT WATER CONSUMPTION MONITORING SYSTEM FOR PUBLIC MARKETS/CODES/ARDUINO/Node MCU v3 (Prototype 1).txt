@@ -1,0 +1,156 @@
+#include <Wire.h>
+#include <ESP8266WiFi.h>
+#include <FirebaseESP8266.h>
+#include <SoftwareSerial.h>
+#define FIREBASE_HOST "h2odatabase-default-rtdb.firebaseio.com/" //paste your firebase link here
+#define FIREBASE_AUTH "y6AgG7gL2g7H3C71pfySZmkqTCNjS8ZTALmQrEbj" //paste your secrets here
+#define ssid "MYWIFINAME" //must change
+#define password "changethese123" //mustchange
+#define RELAY D5
+#define RESETTER D3
+//#define Restartpulse D4
+SoftwareSerial mySerial(12, 13); 
+FirebaseData firebaseData;
+bool PreviousUsageOnce = false;
+unsigned int wireUSAGE2;
+String prevUSAGE;
+String prevRATE;
+String customRate;
+String customRate2;
+String customRatebackup;
+String customRatebackupRestarted;
+float finalUsage;
+float finalRate;
+String capping;
+String cappingUpdates;
+float convertedCapping;
+float cappingUpdatesfloat;
+float convertedCubicRatebyUser;
+void setup() {
+  pinMode(RELAY, OUTPUT);
+  pinMode (RESETTER, OUTPUT);
+  // pinMode(Restartpulse, OUTPUT);
+  Serial.begin(9600);
+  mySerial.begin(9600);
+  Wire.begin(D1, D2);
+  WiFi.begin(ssid, password);
+  Serial.println("Connecting to WiFi");
+   delay(10000);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(250);
+
+    Serial.print("...");
+  }
+  delay(250);
+  Serial.println("");
+  Serial.print("Connected to: ");
+  Serial.println(WiFi.SSID());
+  Serial.print("Connection Strength: ");
+  Serial.println(WiFi.RSSI());
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  Firebase.reconnectWiFi(true);
+  delay(1000);
+  if (Firebase.getString(firebaseData, "/ManagementDatabase/WaterUsages")) {
+    if (firebaseData.dataType() == "string") {
+      prevUSAGE = firebaseData.stringData();
+      Serial.print("Previous Water Usages: ");
+      Serial.println(prevUSAGE);
+      if (Firebase.getString(firebaseData, "/ManagementDatabase/pesoRate")) {
+        if (firebaseData.dataType() == "string") {
+          prevRATE = firebaseData.stringData();
+          Serial.print("Previous Peso Rate: ");
+          Serial.println(prevRATE);
+                if (Firebase.getString(firebaseData, "/ManagementDatabase/customRatebyUser")) {
+        if (firebaseData.dataType() == "string") {
+          customRate = firebaseData.stringData();
+          Serial.print("Modified Cubic Rate to Peso: ");
+             customRate.replace("\"", "");
+              customRate.replace("\\", "");
+          Serial.println(customRate);
+          String wireData = String(prevUSAGE) + "," + String(prevRATE) + "," + String(customRate);
+          Wire.beginTransmission(8);
+          Wire.write(wireData.c_str());
+          Wire.endTransmission();
+                if (Firebase.getString(firebaseData, "/ManagementDatabase/Capped")) {
+            if (firebaseData.dataType() == "string") {
+              capping = firebaseData.stringData();
+              Serial.print("Usage Capped at: ");
+              capping.replace("\"", "");
+              capping.replace("\\", "");
+              Serial.println(capping);
+              convertedCapping = (capping.toFloat());
+            }
+        }
+      }
+    }
+  }
+}
+    }
+  }
+}
+void loop() {
+  if (Serial.available()) {
+    String receivedData = Serial.readStringUntil('\n');
+    parseData(receivedData, prevUSAGE, prevRATE);
+  }
+}
+static bool cappingChanges = false;
+static bool qwert = false;
+static bool addFinalCheck = false;
+static bool RestartESP = false;
+void parseData(String receivedData, String prevUSAGE, String prevRATE) {
+  int separatorPos = receivedData.indexOf(',');
+  if (separatorPos != -1) {
+    String value1Str = receivedData.substring(0, separatorPos);
+    float prevusage = (prevUSAGE.toFloat());
+    //int wireUSAGE = (prevUSAGE.toInt());
+    float value1 = (value1Str.toFloat());
+    finalUsage = (prevusage + value1);
+    String value2Str = receivedData.substring(separatorPos + 1);
+    float value2 = value2Str.toFloat();
+    float prevrate = (prevRATE.toFloat());
+    finalRate = (prevrate + value2);
+    Firebase.setString(firebaseData, "/ManagementDatabase/WaterUsages", finalUsage);
+    Firebase.setString(firebaseData, "/ManagementDatabase/pesoRate", finalRate);
+{ 
+    int convertRATE = static_cast<int>(finalRate);
+int convertCAP = static_cast<int>(convertedCapping);
+    Firebase.getBool(firebaseData, "/ManagementDatabase/Relay");
+    Serial.println(convertRATE);
+    Serial.println(convertCAP);
+    if (firebaseData.dataType() == "string") {
+      String data = firebaseData.stringData();
+      Serial.print("RELAY STATUS: ");
+      Serial.println(data);
+    if (!addFinalCheck){ 
+      if (convertRATE >= convertCAP) {
+        digitalWrite(RELAY, LOW);
+          Serial.println("Relay Capping Feature Activating....");
+        Firebase.setString(firebaseData, "/ManagementDatabase/Relay", "true");
+        // Firebase.set(firebaseData, "/H2O_Monitoring_Application/Capped", NULL);
+        Firebase.deleteNode(firebaseData, "/ManagementDatabase/Capped");
+    addFinalCheck =true;
+      }
+}
+      if (data == "false"){
+ digitalWrite(RELAY, LOW);
+      }else if (data == "true"){ 
+        digitalWrite(RELAY, HIGH);
+          } else { 
+        digitalWrite(RELAY, HIGH);
+      }
+Firebase.getString(firebaseData, "/ManagementDatabase/customRatebyUser");
+        if (firebaseData.dataType() == "string") {
+          customRate2 = firebaseData.stringData();
+          Serial.print("Modified Cubic Rate to Peso: ");
+             customRate.replace("\"", "");
+              customRate.replace("\\", "");
+ mySerial.println(customRate2); 
+    }
+  }
+}
+  }
+}
+ 

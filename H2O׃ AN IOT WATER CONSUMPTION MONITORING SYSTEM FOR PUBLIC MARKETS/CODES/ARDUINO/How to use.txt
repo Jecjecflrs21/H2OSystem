@@ -1,0 +1,40 @@
+For Arduino Mega 2560 Codes.txt
+• Open the .txt file then selects all the text and copy it.
+• Open your Arduino IDE Software
+• Paste the Codes
+• Make sure to select the Arduino Mega 2560 board.
+• Plug the microcontroller into your computer
+• Select available port(s)
+• Then hit 'Upload'.
+
+* Use Node MCU v3 as board when using the Node MCU v3 Codes.
+* Modify the ssid and password when utilizing the esp8266.
+
+You need to create your own Firbase Database to utilize the code:
+• Sign in to https://firebase.google.com/
+• Click on "Get Started".
+• Click on "Add Project", and enter your Project Name.
+• Tick the Google Analytics then hit the continue button.
+• On Configure Google Analytics, choose "Default Account for Firebase", and continue.
+• Once finished, you will now redirected into your Project's dashboard. From here, navigate on the left and look for Build>Realtime Database>Create Database and set up your database.
+• After the creation, go to the 'Rules'. Then change the "false" value into "true", then click on "Published" button.
+• Now copy the database link and paste it into the Node MCU v3 code.
+• Navigate again to the left. Project Overview>Project Settings>Service accounts>Database secrets and copy the secret code provided. Paste the secrets into the code.
+• Return to the database dashboard to edit the content. Click on Build>Realtime Database and hover your mouse to the right side of the link where you should see a '+' sign, then click it.
+• Input these parameters
+	-ManagementDatabase
+		-Capped
+		-Relay 
+		-WaterUsages
+		-customeRatebyUser
+		-pesoRate
+	-SignUp
+	-SignUpVendorUnit1
+	-Update
+
+•With this, your microcontroller are now connected into the Firebase and H2O Mobile.
+
+
+
+
+
